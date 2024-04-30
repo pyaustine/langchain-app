@@ -1,3 +1,4 @@
+# imports
 import streamlit as st
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
@@ -7,8 +8,7 @@ from langchain_community.embeddings import OpenAIEmbeddings, HuggingFaceInstruct
 from langchain.vectorstores import FAISS
 
 
-
-
+# utility functions
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
@@ -30,22 +30,27 @@ def get_text_chunks(text):
 
 def get_vectorstore(text_chunks):
     # embeddings = OpenAIEmbeddings()
-    embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
+    
+    # Using instructor
+    model_name = "hkunlp/instructor-xl"
+    model_kwargs = {'device': 'cpu'}
+    encode_kwargs = {'normalize_embeddings': True}
+    embeddings = HuggingFaceInstructEmbeddings( model_name=model_name, 
+                                                model_kwargs=model_kwargs, 
+                                                encode_kwargs=encode_kwargs
+                                                )
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
-
-
 
 
 def main():
     load_dotenv()
 
 
-
     st.set_page_config(page_title="Chat with multiple PDFs", page_icon=":books:")
-
     st.header("Chat with multiple PDFs :books:")
     st.text_input("Ask a question about your documents")
+
 
     with st.sidebar:
         st.subheader("Your documents list")
@@ -63,10 +68,6 @@ def main():
 
                 # create vectorizer store
                 vectorstore = get_vectorstore(text_chunks)
-
-
-
-
 
 if __name__ == '__main__':
     main()
